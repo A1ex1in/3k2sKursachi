@@ -1,0 +1,520 @@
+CREATE DATABASE "банк"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'Russian_Russia.1251'
+    LC_CTYPE = 'Russian_Russia.1251'
+    LOCALE_PROVIDER = 'libc'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public."клиент"
+(
+    "ид_клиент" bigint,
+    "ид_адрес" bigint,
+    "ф" text,
+    "и" text,
+    "о" text,
+    "паспорт" bigint,
+    "телефон" bigint,
+    PRIMARY KEY ("ид_клиент")
+);
+
+CREATE TABLE IF NOT EXISTS public."адрес_клиент"
+(
+    "ид_адрес" bigint,
+    "страна" text,
+    "город" text,
+    "улица" text,
+    "дом" bigint,
+    "квартира" bigint,
+    PRIMARY KEY ("ид_адрес")
+);
+
+CREATE TABLE IF NOT EXISTS public."счет"
+(
+    "ид_счет" bigint,
+    "ид_клиент" bigint,
+    "ид_тип_счет" bigint,
+    "ид_валюта" bigint,
+    "ид_состояние" bigint,
+    "ид_филлиал" bigint,
+    "сумма" bigint,
+    PRIMARY KEY ("ид_счет")
+);
+
+CREATE TABLE IF NOT EXISTS public."заявка"
+(
+    "ид_заявка" bigint,
+    "ид_клиент" bigint,
+    "ид_состояние" bigint,
+    PRIMARY KEY ("ид_заявка")
+);
+
+CREATE TABLE IF NOT EXISTS public."операция_счет"
+(
+    "ид_операция" bigint,
+    "ид_счет" bigint,
+    "ид_тип_операция" bigint,
+    "сумма" bigint,
+    PRIMARY KEY ("ид_операция")
+);
+
+CREATE TABLE IF NOT EXISTS public."тип_операция"
+(
+    "ид_тип_операция" bigint,
+    "наименование" text,
+    PRIMARY KEY ("ид_тип_операция")
+);
+
+CREATE TABLE IF NOT EXISTS public."тип_счет"
+(
+    "ид_тип_счет" bigint,
+    "название" text,
+    PRIMARY KEY ("ид_тип_счет")
+);
+
+CREATE TABLE IF NOT EXISTS public."валюта"
+(
+    "ид_валюта" bigint,
+    "название" text,
+    PRIMARY KEY ("ид_валюта")
+);
+
+CREATE TABLE IF NOT EXISTS public."состояние_счет"
+(
+    "ид_состояние" bigint,
+    "состояние" text,
+    PRIMARY KEY ("ид_состояние")
+);
+
+CREATE TABLE IF NOT EXISTS public."филлиал"
+(
+    "ид_филлиал" bigint,
+    "ид_адрес_филлиал" bigint,
+    "название" text,
+    PRIMARY KEY ("ид_филлиал")
+);
+
+CREATE TABLE IF NOT EXISTS public."состояние_заявка"
+(
+    "ид_состояние" bigint,
+    "статус" text,
+    PRIMARY KEY ("ид_состояние")
+);
+
+CREATE TABLE IF NOT EXISTS public."адрес_филлиал"
+(
+    "ид_адрес_филлиал" bigint,
+    "страна" text,
+    "город" text,
+    "улица" text,
+    "дом" bigint,
+    "почтовый_индекс" bigint,
+    PRIMARY KEY ("ид_адрес_филлиал")
+);
+
+CREATE TABLE IF NOT EXISTS public."авторизация"
+(
+    "ид_авторизация" bigint NOT NULL,
+    "ид_клиент" bigint,
+    "логин" text COLLATE pg_catalog."default",
+    "пароль" text COLLATE pg_catalog."default",
+    CONSTRAINT "авторизация_pkey" PRIMARY KEY ("ид_авторизация")
+);
+
+CREATE TABLE IF NOT EXISTS public."ключи"
+(
+    "ид_авторизация" bigint,
+    "ключ" text
+);
+
+CREATE TABLE IF NOT EXISTS public."хэш"
+(
+    "ид_авторизация" bigint,
+    "хэш" text
+);
+
+CREATE TABLE IF NOT EXISTS public."память"
+(
+    "ид_клиент" bigint,
+    "ид_адрес" bigint,
+    "ф" text,
+    "и" text,
+    "о" text,
+    "паспорт" bigint,
+    "телефон" bigint
+);
+
+CREATE TABLE IF NOT EXISTS public."статистика"
+(
+	"дата" date,
+	"количество_обращений" bigint
+);
+
+
+ALTER TABLE IF EXISTS public."клиент"
+    ADD FOREIGN KEY ("ид_адрес")
+    REFERENCES public."адрес_клиент" ("ид_адрес") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."счет"
+    ADD FOREIGN KEY ("ид_клиент")
+    REFERENCES public."клиент" ("ид_клиент") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."счет"
+    ADD FOREIGN KEY ("ид_тип_счет")
+    REFERENCES public."тип_счет" ("ид_тип_счет") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."счет"
+    ADD FOREIGN KEY ("ид_валюта")
+    REFERENCES public."валюта" ("ид_валюта") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."счет"
+    ADD FOREIGN KEY ("ид_состояние")
+    REFERENCES public."состояние_счет" ("ид_состояние") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."счет"
+    ADD FOREIGN KEY ("ид_филлиал")
+    REFERENCES public."филлиал" ("ид_филлиал") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."заявка"
+    ADD FOREIGN KEY ("ид_клиент")
+    REFERENCES public."клиент" ("ид_клиент") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."заявка"
+    ADD FOREIGN KEY ("ид_состояние")
+    REFERENCES public."состояние_заявка" ("ид_состояние") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."операция_счет"
+    ADD FOREIGN KEY ("ид_счет")
+    REFERENCES public."счет" ("ид_счет") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."операция_счет"
+    ADD FOREIGN KEY ("ид_тип_операция")
+    REFERENCES public."тип_операция" ("ид_тип_операция") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public."филлиал"
+    ADD FOREIGN KEY ("ид_адрес_филлиал")
+    REFERENCES public."адрес_филлиал" ("ид_адрес_филлиал") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+ALTER TABLE IF EXISTS public."авторизация"
+    ADD CONSTRAINT "авторизация_ид_клиент_fkey1" FOREIGN KEY ("ид_клиент")
+    REFERENCES public."клиент" ("ид_клиент") MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+END;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+insert into  тип_операция  ( ид_тип_операция , наименование )
+values (0, 'снятие'), (1, 'пополнение');
+
+insert into  адрес_филлиал  ( ид_адрес_филлиал , страна , город , улица , дом , почтовый_индекс )
+values (0, 'Россия', 'Омск', 'Дзержинского', 1, 000000);
+
+insert into  тип_счет  ( ид_тип_счет , название )
+values (0, 'кредит 0'), (1, 'кредит 1'), (2, 'кредит 2');
+
+insert into  валюта  ( ид_валюта , название )
+values (0, 'рубль'), (1, 'доллар');
+
+insert into  состояние_счет  ( ид_состояние , состояние )
+values (0, 'закрыт'), (1, 'открыт');
+
+insert into  состояние_заявка  ( ид_состояние , статус )
+values (0, 'закрыта'), (1, 'открыта'), (2, 'на_рассмотрении');
+
+insert into  адрес_клиент  ( ид_адрес , страна , город , улица , дом , квартира )
+values (0, 'Россия', 'Омск', 'Дзержинского', 1, 1);
+
+insert into  клиент  ( ид_клиент , ид_адрес , ф , и , о , паспорт , телефон )
+values (0, 0, 'Иванов', 'Иван', 'Иванович', 0000000000, 0000000000), (1, 0, 'Петров', 'Петр', 'Петрович', 1111111111, 1111111111), (2, 0, 'Ив', 'Ив', 'Ив', 0000000000, 0000000000);
+
+insert into  филлиал  ( ид_филлиал , ид_адрес_филлиал , название )
+values (0, 0, 'первый_филлиал');
+
+insert into  счет  ( ид_счет , ид_клиент , ид_тип_счет , ид_валюта , ид_состояние , ид_филлиал , сумма )
+values (0, 0, 0, 0, 1, 0, 100000),(1, 1, 0, 0, 1, 0, 100000),(2, 2, 0, 0, 1, 0, 100000);
+
+insert into  операция_счет  ( ид_операция , ид_счет , ид_тип_операция , сумма )
+values (0, 0, 0, 10000);
+
+insert into  заявка  ( ид_заявка , ид_клиент , ид_состояние )
+values (0, 0, 2);
+
+insert into public.авторизация (ид_авторизация, ид_клиент, логин, пароль)
+values (0,0,'u1','p1'),(1,1,'u2','p2'),(2,2,'u3','p3');
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--лр2
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+SET search_path='test';
+--
+insert into public.авторизация (ид_авторизация, ид_клиент, логин, пароль)
+values (1,1,'14567','123');
+DELETE FROM public.авторизация WHERE ид_авторизация = 1;
+
+insert into  public.ключи  (ид_авторизация, ключ)
+values (1,1);
+DELETE FROM public.ключи WHERE ид_авторизация = 1;
+
+insert into  public.хэш  (ид_авторизация, хэш)
+values (1,1);
+DELETE FROM public.хэш WHERE ид_авторизация = 1;
+--
+CREATE OR REPLACE FUNCTION public.before_insert_autorizatsiya()
+RETURNS trigger AS $$
+DECLARE
+	gen_key bytea;
+BEGIN
+	gen_key := public.gen_random_bytes(16);
+    NEW.пароль := (public.pgp_sym_encrypt(NEW.пароль, (gen_key)::text, 'cipher-algo=aes256'))::bytea;
+	INSERT INTO public.ключи (ид_авторизация, ключ) VALUES (NEW.ид_авторизация, gen_key::text);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER before_insert_autorizatsiya_trigger
+BEFORE INSERT ON public.авторизация
+FOR EACH ROW
+EXECUTE FUNCTION public.before_insert_autorizatsiya();
+--
+CREATE OR REPLACE PROCEDURE public.decrypt_password_user(id_user bigint)
+AS $$
+DECLARE
+	key text;
+	dec_pass text;
+BEGIN
+	SELECT ключи.ключ INTO key
+	from public.ключи
+	join public.авторизация ON авторизация.ид_авторизация = ключи.ид_авторизация
+	join public.клиент ON клиент.ид_клиент = авторизация.ид_клиент
+	WHERE клиент.ид_клиент = id_user;
+	
+	SELECT public.pgp_sym_decrypt(пароль::bytea, key) INTO dec_pass
+	from public.авторизация
+	WHERE авторизация.ид_клиент = id_user;
+	
+	RAISE notice 'Пароль: %', dec_pass;
+END
+$$ LANGUAGE plpgsql;
+
+call public.decrypt_password_user(1);
+--
+CREATE OR REPLACE FUNCTION public.trigger_hash_password()
+RETURNS TRIGGER AS $$
+DECLARE
+	encryption_key text;
+BEGIN
+	encryption_key := (public.gen_salt('md5'))::text;
+    NEW.логин := public.crypt(NEW.логин, encryption_key);
+    INSERT INTO public.хэш (ид_авторизация, хэш) VALUES (NEW.ид_авторизация, encryption_key);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER encrypt_password_trigger
+BEFORE INSERT ON public.авторизация
+FOR EACH ROW
+EXECUTE FUNCTION public.trigger_hash_password();
+--
+CREATE OR REPLACE PROCEDURE public.proverka (id_dan int, password text)
+AS $$
+	DECLARE
+		provka text;
+	BEGIN
+	SELECT public.crypt(password, хэш.хэш) INTO provka
+	FROM public.хэш
+	join public.авторизация ON авторизация.ид_авторизация = хэш.ид_авторизация
+	WHERE авторизация.ид_клиент = id_dan;
+
+	IF provka = (SELECT авторизация.логин
+		FROM public.авторизация
+		WHERE авторизация.ид_клиент = id_dan) THEN RAISE NOTICE '+';
+		ELSE RAISE NOTICE '-';
+	END IF;
+END;
+$$ LANGUAGE plpgsql;
+call public.proverka(1, '1456');
+---
+В PostgreSQL поддерживаются несколько алгоритмов хеширования паролей. Вот некоторые из них и их уровень безопасности:
+
+MD5: Это один из самых старых и наименее безопасных алгоритмов хеширования. 
+	Рекомендуется избегать использования MD5 для хеширования паролей из-за его уязвимостей к быстрому подбору.
+	
+SHA-256: SHA-256 является более безопасным алгоритмом по сравнению с MD5, 
+	но все еще может быть уязвим к атакам подбора паролей при использовании слабых паролей или недостаточной длины.
+	
+SHA-512: Это улучшенная версия SHA-256 с большей длиной хеша и более сложным алгоритмом хеширования. 
+	SHA-512 обеспечивает более высокий уровень безопасности по сравнению с SHA-256.
+	
+bcrypt: bcrypt является адаптивным хешем с медленной скоростью хеширования, что делает его более устойчивым к атакам подбора паролей. 
+	Он обычно считается одним из наиболее безопасных алгоритмов хеширования паролей.
+	
+PBKDF2: PBKDF2 (Password-Based Key Derivation Function 2) также является адаптивным алгоритмом хеширования, который используется для создания ключей на основе паролей. 
+	Он обеспечивает высокий уровень безопасности благодаря многократному применению хеш-функций.
+
+Рекомендации по выбору наиболее безопасного алгоритма для хеширования паролей в базе данных:
+
+Избегаем использования MD5: MD5 является устаревшим и не безопасным алгоритмом.
+	Предпочтительнее SHA-512, bcrypt или PBKDF2: Эти алгоритмы обеспечивают более высокий уровень безопасности благодаря своей сложности и способности к адаптации к атакам подбора паролей.
+	
+Рассмотрим использование bcrypt: Если безопасность паролей имеет высший приоритет, 
+	bcrypt может быть хорошим выбором из-за своей медленной скорости хеширования, что делает атаки подбора паролей менее эффективными.
+	
+Учитываем производительность: Некоторые алгоритмы, такие как bcrypt, могут быть более медленными по сравнению с другими. 
+	Убедитесь, что выбранный алгоритм обеспечивает необходимый уровень безопасности при приемлемой производительности для вашей системы.
+	
+Используйте соль и итерации: Независимо от выбранного алгоритма, важно использовать соль (salt) и достаточное количество итераций при хешировании паролей для повышения их безопасности.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--лр3
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION trg_delete_client()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Записываем данные о удаленном клиенте в таблицу "память"
+    INSERT INTO public.память (ид_клиент, ид_адрес, ф, и, о, паспорт, телефон)
+    VALUES (OLD.ид_клиент, OLD.ид_адрес, OLD.ф, OLD.и, OLD.о, OLD.паспорт, OLD.телефон);
+
+    -- Возвращаем OLD для выполнения операции удаления
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Создаем триггер, который будет вызывать функцию trg_delete_client перед удалением записи из таблицы "клиент"
+CREATE TRIGGER trg_delete_client_trigger
+BEFORE DELETE ON "клиент"
+FOR EACH ROW
+EXECUTE FUNCTION trg_delete_client();
+
+
+insert into  клиент  ( ид_клиент , ид_адрес , ф , и , о , паспорт , телефон )
+values (2, 0, 'Петров', 'Петр', 'Петрович', 1111111111, 2222222222);
+
+delete from клиент where ид_клиент = 2;
+
+CREATE OR REPLACE FUNCTION trg_client_access()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Проверяем, существует ли запись для текущей даты в таблице "статистика"
+    IF EXISTS (SELECT 1 FROM "статистика" WHERE "дата" = CURRENT_DATE) THEN
+        -- Обновляем количество обращений на 1 для текущей даты
+        UPDATE "статистика"
+        SET "количество_обращений" = "количество_обращений" + 1
+        WHERE "дата" = CURRENT_DATE;
+    ELSE
+        -- Если записи для текущей даты нет, добавляем новую запись с количеством обращений 1
+        INSERT INTO "статистика" ("дата", "количество_обращений")
+        VALUES (CURRENT_DATE, 1);
+    END IF;
+
+    -- Возвращаем NEW для выполнения операции обращения к таблице "клиент"
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Создаем триггер, который будет вызывать функцию trg_client_access при обращении к таблице "клиент"
+CREATE TRIGGER trg_client_access_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "клиент"
+FOR EACH STATEMENT
+EXECUTE FUNCTION trg_client_access();
+
+insert into  клиент  ( ид_клиент , ид_адрес , ф , и , о , паспорт , телефон )
+values (2, 0, 'Петров', 'Петр', 'Петрович', 1111111111, 2222222222);
+
+delete from клиент where ид_клиент = 2;
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--лр4
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+create table test_table
+( test text );
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--лр5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+create role user_cliet_role;
+
+CREATE USER u1 WITH LOGIN PASSWORD 'p1';
+GRANT user_cliet_role TO u1;
+CREATE USER u2 WITH LOGIN PASSWORD 'p2';
+GRANT user_cliet_role TO u2;
+CREATE USER u3 WITH LOGIN PASSWORD 'p3';
+GRANT user_cliet_role TO u3;
+
+
+CREATE POLICY only_user_info_klient ON клиент
+USING ( ид_клиент = (	SELECT ид_клиент
+						FROM авторизация
+						WHERE логин = current_user));
+					   
+CREATE POLICY only_user_info_schet ON счет
+USING ( ид_клиент = (	SELECT ид_клиент
+						FROM авторизация
+						WHERE логин = current_user));
+
+CREATE POLICY only_user_redact_klient ON клиент
+WITH CHECK (ид_клиент = (	SELECT ид_клиент
+							FROM авторизация
+							WHERE логин = current_user));
+
+ALTER TABLE клиент ENABLE ROW LEVEL SECURITY;
+ALTER TABLE счет ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT ON клиент, счет, авторизация TO user_cliet_role;
+GRANT UPDATE ON клиент TO user_cliet_role;
+
+SELECT * FROM клиент;
+SELECT * FROM счет;
+
+UPDATE клиент
+SET и = 'Дима';
