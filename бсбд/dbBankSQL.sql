@@ -1,6 +1,6 @@
-CREATE TABLE "hash" (
+CREATE TABLE "hhash" (
   "id_autorization" bigint,
-  "hash" text
+  "hashh" text
 );
 
 CREATE TABLE "statistik" (
@@ -79,7 +79,7 @@ CREATE TABLE "client" (
 CREATE TABLE "autorization" (
   "id_autorization" bigint PRIMARY KEY,
   "id_client" bigint,
-  "login" text,
+  "loginn" text,
   "pass" text
 );
 
@@ -135,3 +135,73 @@ ALTER TABLE "schet" ADD FOREIGN KEY ("id_filial") REFERENCES "filial" ("id_filia
 ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_schet") REFERENCES "schet" ("id_schet");
 
 ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES "type_operation" ("id_type_operation");
+
+--0		list table:
+--1		hhash (id_autorization, hashh)
+--2		statistik (dat, colvo_obrasheni)
+--3		memory (id_client, id_adres_client, fam, nam, otch, passport, numb)
+--4		keys (id_autorizations, keyy)
+--5		adres_filial (id_adres_filial, country, city, street, house, post_index)
+--6		type_operation (id_type_operation, nam)
+--7		type_schet (id_type_schet, nam)
+--8		state_schet (id_state_schet, sost)
+--9		valut (id_valut, nam)
+--10	state_zayavka (id_state_zayavka, sost)
+--11	adres_client (id_adres_client, country, city, street, house, apartment)
+--12	client (id_client, id_adres_client, fam, nam, otch, passport, numb)
+--13	autorization (id_autorization, id_client, loginn, pass)
+--14	zayavka (id_zayavka, id_client, id_state_zayavka)
+--15	filial (id_filial, id_adres_filial, nam)
+--16	schet (id_schet, id_client, id_type_schet, id_valut, id_state_schet, id_filial, summ)
+--17	operations_schet (id_operation, id_schet, id_type_operation, summ)
+
+insert into hhash (id_autorization, hashh)
+values (), ();
+
+insert into statistik (dat, colvo_obrasheni)
+values (), ();
+
+insert into memory (id_client, id_adres_client, fam, nam, otch, passport, numb)
+values (), ();
+
+insert into keys (id_autorizations, keyy)
+values (), ();
+
+insert into adres_filial (id_adres_filial, country, city, street, house, post_index)
+values (), ();
+
+insert into type_operation (id_type_operation, nam)
+values (), ();
+
+insert into type_schet (id_type_schet, nam)
+values (), ();
+
+insert into state_schet (id_state_schet, sost)
+values (), ();
+
+insert into valut (id_valut, nam)
+values (), ();
+
+insert into state_zayavka (id_state_zayavka, sost)
+values (), ();
+
+insert into adres_client (id_adres_client, country, city, street, house, apartment)
+values (), ();
+
+insert into client (id_client, id_adres_client, fam, nam, otch, passport, numb)
+values (), ();
+
+insert into autorization (id_autorization, id_client, loginn, pass)
+values (), ();
+
+insert into zayavka (id_zayavka, id_client, id_state_zayavka)
+values (), ();
+
+insert into filial (id_filial, id_adres_filial, nam)
+values (), ();
+
+insert into schet (id_schet, id_client, id_type_schet, id_valut, id_state_schet, id_filial, summ)
+values (), ();
+
+insert into operations_schet (id_operation, id_schet, id_type_operation, summ)
+values (), ();
