@@ -155,53 +155,127 @@ ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES 
 --16	schet (id_schet, id_client, id_type_schet, id_valut, id_state_schet, id_filial, summ)
 --17	operations_schet (id_operation, id_schet, id_type_operation, summ)
 
-insert into hhash (id_autorization, hashh)
-values (), ();
+-- Заполнение таблицы "hhash"
+INSERT INTO "hhash" ("id_autorization", "hashh") VALUES
+(1, 'хэш1'), (2, 'хэш2'), (3, 'хэш3'), (4, 'хэш4'), (5, 'хэш5'),
+(6, 'хэш6'), (7, 'хэш7'), (8, 'хэш8'), (9, 'хэш9'), (10, 'хэш10');
 
-insert into statistik (dat, colvo_obrasheni)
-values (), ();
+-- Заполнение таблицы "statistik"
+INSERT INTO "statistik" ("dat", "colvo_obrasheni") VALUES
+('2023-01-01', 5), ('2023-01-02', 10), ('2023-01-03', 15), ('2023-01-04', 20),
+('2023-01-05', 25), ('2023-01-06', 30), ('2023-01-07', 35), ('2023-01-08', 40),
+('2023-01-09', 45), ('2023-01-10', 50);
 
-insert into memory (id_client, id_adres_client, fam, nam, otch, passport, numb)
-values (), ();
+-- Заполнение таблицы "memory"
+INSERT INTO "memory" ("id_client", "id_adres_client", "fam", "nam", "otch", "passport", "numb") VALUES
+(1, 1, 'Иванов', 'Иван', 'Иванович', 123456, 1234567890),
+(2, 2, 'Петров', 'Петр', 'Петрович', 234567, 2345678901),
+(3, 3, 'Сидоров', 'Сидор', 'Сидорович', 345678, 3456789012),
+(4, 4, 'Смирнов', 'Сергей', 'Сергеевич', 456789, 4567890123),
+(5, 5, 'Кузнецов', 'Алексей', 'Алексеевич', 567890, 5678901234),
+(6, 6, 'Попов', 'Андрей', 'Андреевич', 678901, 6789012345),
+(7, 7, 'Васильев', 'Владимир', 'Владимирович', 789012, 7890123456),
+(8, 8, 'Зайцев', 'Дмитрий', 'Дмитриевич', 890123, 8901234567),
+(9, 9, 'Ковалев', 'Юрий', 'Юрьевич', 901234, 9012345678),
+(10, 10, 'Орлов', 'Михаил', 'Михайлович', 101234, 1012345678);
 
-insert into keys (id_autorizations, keyy)
-values (), ();
+-- Заполнение таблицы "keys"
+INSERT INTO "keys" ("id_autorizations", "keyy") VALUES
+(1, 'ключ1'), (2, 'ключ2'), (3, 'ключ3'), (4, 'ключ4'), (5, 'ключ5'),
+(6, 'ключ6'), (7, 'ключ7'), (8, 'ключ8'), (9, 'ключ9'), (10, 'ключ10');
 
-insert into adres_filial (id_adres_filial, country, city, street, house, post_index)
-values (), ();
+-- Заполнение таблицы "adres_filial"
+INSERT INTO "adres_filial" ("id_adres_filial", "country", "city", "street", "house", "post_index") VALUES
+(1, 'Россия', 'Москва', 'Ленина', 1, 123456),
+(2, 'Россия', 'Санкт-Петербург', 'Невский', 2, 234567),
+(3, 'Россия', 'Казань', 'Кремлевская', 3, 345678),
+(4, 'Россия', 'Сочи', 'Курортный', 4, 456789),
+(5, 'Россия', 'Екатеринбург', 'Малышева', 5, 567890),
+(6, 'Россия', 'Новосибирск', 'Кирова', 6, 678901),
+(7, 'Россия', 'Владивосток', 'Светланская', 7, 789012),
+(8, 'Россия', 'Нижний Новгород', 'Большая Покровская', 8, 890123),
+(9, 'Россия', 'Ростов-на-Дону', 'Пушкинская', 9, 901234),
+(10, 'Россия', 'Самара', 'Максима Горького', 10, 101234);
 
-insert into type_operation (id_type_operation, nam)
-values (), ();
+-- Заполнение таблицы "type_operation"
+INSERT INTO "type_operation" ("id_type_operation", "nam") VALUES
+(1, 'Депозит'), (2, 'Снятие'), (3, 'Перевод'), (4, 'Платеж'), (5, 'Обмен'),
+(6, 'Кэшбэк'), (7, 'Выплата процентов'), (8, 'Комиссия'), (9, 'Штраф'), (10, 'Возврат');
 
-insert into type_schet (id_type_schet, nam)
-values (), ();
+-- Заполнение таблицы "type_schet"
+INSERT INTO "type_schet" ("id_type_schet", "nam") VALUES
+(1, 'Текущий'), (2, 'Сберегательный'), (3, 'Срочный вклад'), (4, 'Повторяющийся вклад'), (5, 'Ностро счет'),
+(6, 'Востро счет'), (7, 'Текущий счет'), (8, 'Зарплатный'), (9, 'Эскроу'), (10, 'Совместный счет');
 
-insert into state_schet (id_state_schet, sost)
-values (), ();
+-- Заполнение таблицы "state_schet"
+INSERT INTO "state_schet" ("id_state_schet", "sost") VALUES
+(1, 'Активный'), (2, 'Неактивный'), (3, 'Закрыт'), (4, 'Приостановлен'), (5, 'Спящий'),
+(6, 'Заморожен'), (7, 'Заблокирован'), (8, 'В ожидании'), (9, 'Одобрен'), (10, 'Отклонен');
 
-insert into valut (id_valut, nam)
-values (), ();
+-- Заполнение таблицы "valut"
+INSERT INTO "valut" ("id_valut", "nam") VALUES
+(1, 'RUB'), (2, 'USD'), (3, 'EUR'), (4, 'GBP'), (5, 'JPY'),
+(6, 'CNY'), (7, 'INR'), (8, 'CAD'), (9, 'AUD'), (10, 'CHF');
 
-insert into state_zayavka (id_state_zayavka, sost)
-values (), ();
+-- Заполнение таблицы "state_zayavka"
+INSERT INTO "state_zayavka" ("id_state_zayavka", "sost") VALUES
+(1, 'Новая'), (2, 'В обработке'), (3, 'Завершена'), (4, 'Отменена'), (5, 'На удержании'),
+(6, 'Отклонена'), (7, 'В ожидании'), (8, 'Одобрена'), (9, 'Отклонена'), (10, 'Закрыта');
 
-insert into adres_client (id_adres_client, country, city, street, house, apartment)
-values (), ();
+-- Заполнение таблицы "adres_client"
+INSERT INTO "adres_client" ("id_adres_client", "country", "city", "street", "house", "apartment") VALUES
+(1, 'Россия', 'Москва', 'Тверская', 1, 10),
+(2, 'Россия', 'Санкт-Петербург', 'Лиговский', 2, 20),
+(3, 'Россия', 'Казань', 'Баумана', 3, 30),
+(4, 'Россия', 'Сочи', 'Ривьера', 4, 40),
+(5, 'Россия', 'Екатеринбург', 'Высоцкого', 5, 50),
+(6, 'Россия', 'Новосибирск', 'Ленина', 6, 60),
+(7, 'Россия', 'Владивосток', 'Океанский', 7, 70),
+(8, 'Россия', 'Нижний Новгород', 'Горького', 8, 80),
+(9, 'Россия', 'Ростов-на-Дону', 'Донская', 9, 90),
+(10, 'Россия', 'Самара', 'Самарская', 10, 100);
 
-insert into client (id_client, id_adres_client, fam, nam, otch, passport, numb)
-values (), ();
+-- Заполнение таблицы "client"
+INSERT INTO "client" ("id_client", "id_adres_client", "fam", "nam", "otch", "passport", "numb") VALUES
+(1, 1, 'Иванов', 'Иван', 'Иванович', '1234567890', 8901234567),
+(2, 2, 'Петров', 'Петр', 'Петрович', '2345678901', 8902345678),
+(3, 3, 'Сидоров', 'Сидор', 'Сидорович', '3456789012', 8903456789),
+(4, 4, 'Смирнов', 'Сергей', 'Сергеевич', '4567890123', 8904567890),
+(5, 5, 'Кузнецов', 'Алексей', 'Алексеевич', '5678901234', 8905678901),
+(6, 6, 'Попов', 'Андрей', 'Андреевич', '6789012345', 8906789012),
+(7, 7, 'Васильев', 'Владимир', 'Владимирович', '7890123456', 8907890123),
+(8, 8, 'Зайцев', 'Дмитрий', 'Дмитриевич', '8901234567', 8908901234),
+(9, 9, 'Ковалев', 'Юрий', 'Юрьевич', '9012345678', 8909012345),
+(10, 10, 'Орлов', 'Михаил', 'Михайлович', '1012345678', 8901012345);
 
-insert into autorization (id_autorization, id_client, loginn, pass)
-values (), ();
+-- Заполнение таблицы "autorization"
+INSERT INTO "autorization" ("id_autorization", "id_client", "loginn", "pass") VALUES
+(1, 1, 'ivanov_login', 'ivanov_pass'), (2, 2, 'petrov_login', 'petrov_pass'),
+(3, 3, 'sidorov_login', 'sidorov_pass'), (4, 4, 'smirnov_login', 'smirnov_pass'),
+(5, 5, 'kuznetsov_login', 'kuznetsov_pass'), (6, 6, 'popov_login', 'popov_pass'),
+(7, 7, 'vasiliev_login', 'vasiliev_pass'), (8, 8, 'zaitsev_login', 'zaitsev_pass'),
+(9, 9, 'kovalev_login', 'kovalev_pass'), (10, 10, 'orlov_login', 'orlov_pass');
 
-insert into zayavka (id_zayavka, id_client, id_state_zayavka)
-values (), ();
+-- Заполнение таблицы "zayavka"
+INSERT INTO "zayavka" ("id_zayavka", "id_client", "id_state_zayavka") VALUES
+(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5),
+(6, 6, 6), (7, 7, 7), (8, 8, 8), (9, 9, 9), (10, 10, 10);
 
-insert into filial (id_filial, id_adres_filial, nam)
-values (), ();
+-- Заполнение таблицы "filial"
+INSERT INTO "filial" ("id_filial", "id_adres_filial", "nam") VALUES
+(1, 1, 'Филиал в Москве'), (2, 2, 'Филиал в Санкт-Петербурге'), (3, 3, 'Филиал в Казани'),
+(4, 4, 'Филиал в Сочи'), (5, 5, 'Филиал в Екатеринбурге'), (6, 6, 'Филиал в Новосибирске'),
+(7, 7, 'Филиал во Владивостоке'), (8, 8, 'Филиал в Нижнем Новгороде'), (9, 9, 'Филиал в Ростове-на-Дону'),
+(10, 10, 'Филиал в Самаре');
 
-insert into schet (id_schet, id_client, id_type_schet, id_valut, id_state_schet, id_filial, summ)
-values (), ();
+-- Заполнение таблицы "schet"
+INSERT INTO "schet" ("id_schet", "id_client", "id_type_schet", "id_valut", "id_state_schet", "id_filial", "summ") VALUES
+(1, 1, 1, 1, 1, 1, 10000), (2, 2, 2, 2, 2, 2, 20000), (3, 3, 3, 3, 3, 3, 30000),
+(4, 4, 4, 4, 4, 4, 40000), (5, 5, 5, 5, 5, 5, 50000), (6, 6, 6, 6, 6, 6, 60000),
+(7, 7, 7, 7, 7, 7, 70000), (8, 8, 8, 8, 8, 8, 80000), (9, 9, 9, 9, 9, 9, 90000),
+(10, 10, 10, 10, 10, 10, 100000);
 
-insert into operations_schet (id_operation, id_schet, id_type_operation, summ)
-values (), ();
+-- Заполнение таблицы "operations_schet"
+INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation", "summ") VALUES
+(1, 1, 1, 1000), (2, 2, 2, 2000), (3, 3, 3, 3000), (4, 4, 4, 4000), (5, 5, 5, 5000),
+(6, 6, 6, 6000), (7, 7, 7, 7000), (8, 8, 8, 8000), (9, 9, 9, 9000), (10, 10, 10, 10000);
