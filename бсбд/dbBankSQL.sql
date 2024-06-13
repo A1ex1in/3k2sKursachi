@@ -3,21 +3,6 @@ CREATE TABLE "hhash" (
   "hashh" text
 );
 
-CREATE TABLE "statistik" (
-  "dat" date,
-  "colvo_obrasheni" bigint
-);
-
-CREATE TABLE "memory" (
-  "id_client" bigint,
-  "id_adres_client" bigint,
-  "fam" text,
-  "nam" text,
-  "otch" text,
-  "passport" bigint,
-  "numb" bigint
-);
-
 CREATE TABLE "keys" (
   "id_autorizations" bigint,
   "keyy" text
@@ -156,33 +141,14 @@ ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES 
 --17	operations_schet (id_operation, id_schet, id_type_operation, summ)
 
 -- Заполнение таблицы "hhash"
-INSERT INTO "hhash" ("id_autorization", "hashh") VALUES
-(1, 'хэш1'), (2, 'хэш2'), (3, 'хэш3'), (4, 'хэш4'), (5, 'хэш5'),
-(6, 'хэш6'), (7, 'хэш7'), (8, 'хэш8'), (9, 'хэш9'), (10, 'хэш10');
-
--- Заполнение таблицы "statistik"
-INSERT INTO "statistik" ("dat", "colvo_obrasheni") VALUES
-('2023-01-01', 5), ('2023-01-02', 10), ('2023-01-03', 15), ('2023-01-04', 20),
-('2023-01-05', 25), ('2023-01-06', 30), ('2023-01-07', 35), ('2023-01-08', 40),
-('2023-01-09', 45), ('2023-01-10', 50);
-
--- Заполнение таблицы "memory"
-INSERT INTO "memory" ("id_client", "id_adres_client", "fam", "nam", "otch", "passport", "numb") VALUES
-(1, 1, 'Иванов', 'Иван', 'Иванович', 123456, 1234567890),
-(2, 2, 'Петров', 'Петр', 'Петрович', 234567, 2345678901),
-(3, 3, 'Сидоров', 'Сидор', 'Сидорович', 345678, 3456789012),
-(4, 4, 'Смирнов', 'Сергей', 'Сергеевич', 456789, 4567890123),
-(5, 5, 'Кузнецов', 'Алексей', 'Алексеевич', 567890, 5678901234),
-(6, 6, 'Попов', 'Андрей', 'Андреевич', 678901, 6789012345),
-(7, 7, 'Васильев', 'Владимир', 'Владимирович', 789012, 7890123456),
-(8, 8, 'Зайцев', 'Дмитрий', 'Дмитриевич', 890123, 8901234567),
-(9, 9, 'Ковалев', 'Юрий', 'Юрьевич', 901234, 9012345678),
-(10, 10, 'Орлов', 'Михаил', 'Михайлович', 101234, 1012345678);
+--INSERT INTO "hhash" ("id_autorization", "hashh") VALUES
+--(1, 'хэш1'), (2, 'хэш2'), (3, 'хэш3'), (4, 'хэш4'), (5, 'хэш5'),
+--(6, 'хэш6'), (7, 'хэш7'), (8, 'хэш8'), (9, 'хэш9'), (10, 'хэш10');
 
 -- Заполнение таблицы "keys"
-INSERT INTO "keys" ("id_autorizations", "keyy") VALUES
-(1, 'ключ1'), (2, 'ключ2'), (3, 'ключ3'), (4, 'ключ4'), (5, 'ключ5'),
-(6, 'ключ6'), (7, 'ключ7'), (8, 'ключ8'), (9, 'ключ9'), (10, 'ключ10');
+--INSERT INTO "keys" ("id_autorizations", "keyy") VALUES
+--(1, 'ключ1'), (2, 'ключ2'), (3, 'ключ3'), (4, 'ключ4'), (5, 'ключ5'),
+--(6, 'ключ6'), (7, 'ключ7'), (8, 'ключ8'), (9, 'ключ9'), (10, 'ключ10');
 
 -- Заполнение таблицы "adres_filial"
 INSERT INTO "adres_filial" ("id_adres_filial", "country", "city", "street", "house", "post_index") VALUES
@@ -279,3 +245,21 @@ INSERT INTO "schet" ("id_schet", "id_client", "id_type_schet", "id_valut", "id_s
 INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation", "summ") VALUES
 (1, 1, 1, 1000), (2, 2, 2, 2000), (3, 3, 3, 3000), (4, 4, 4, 4000), (5, 5, 5, 5000),
 (6, 6, 6, 6000), (7, 7, 7, 7000), (8, 8, 8, 8000), (9, 9, 9, 9000), (10, 10, 10, 10000);
+
+
+create role cliet;
+create role administrator;
+create role menedjer;
+
+
+CREATE USER ivanov_login WITH LOGIN PASSWORD 'p1';
+GRANT cliet TO ivanov_login;
+CREATE USER u2 WITH LOGIN PASSWORD 'p2';
+GRANT administrator TO u2;
+CREATE USER u3 WITH LOGIN PASSWORD 'p3';
+GRANT menedjer TO u3;
+
+
+--SELECT table_schema, table_name, privilege_type
+--FROM information_schema.table_privileges
+--WHERE grantee = 'u1';
