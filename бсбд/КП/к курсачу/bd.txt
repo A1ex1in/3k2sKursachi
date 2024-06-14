@@ -1,10 +1,5 @@
-CREATE TABLE "hhash" (
-  "id_autorization" bigint,
-  "hashh" text
-);
-
 CREATE TABLE "keys" (
-  "id_autorizations" bigint,
+  "id_client" bigint,
   "keyy" text
 );
 
@@ -61,13 +56,6 @@ CREATE TABLE "client" (
   "numb" bigint
 );
 
-CREATE TABLE "autorization" (
-  "id_autorization" bigint PRIMARY KEY,
-  "id_client" bigint,
-  "loginn" text,
-  "pass" text
-);
-
 CREATE TABLE "zayavka" (
   "id_zayavka" bigint PRIMARY KEY,
   "id_client" bigint,
@@ -97,9 +85,9 @@ CREATE TABLE "operations_schet" (
   "summ" bigint
 );
 
-ALTER TABLE "client" ADD FOREIGN KEY ("id_adres_client") REFERENCES "adres_client" ("id_adres_client");
+ALTER TABLE "keys" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
 
-ALTER TABLE "autorization" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
+ALTER TABLE "client" ADD FOREIGN KEY ("id_adres_client") REFERENCES "adres_client" ("id_adres_client");
 
 ALTER TABLE "zayavka" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
 
@@ -121,33 +109,6 @@ ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_schet") REFERENCES "schet" (
 
 ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES "type_operation" ("id_type_operation");
 
---0		list table:
---1		hhash (id_autorization, hashh)
---2		keys (id_autorizations, keyy)
---3		adres_filial (id_adres_filial, country, city, street, house, post_index)
---4		type_operation (id_type_operation, nam)
---5		type_schet (id_type_schet, nam)
---6		state_schet (id_state_schet, sost)
---7		valut (id_valut, nam)
---8		state_zayavka (id_state_zayavka, sost)
---9		adres_client (id_adres_client, country, city, street, house, apartment)
---10	client (id_client, id_adres_client, fam, nam, otch, passport, numb)
---11	autorization (id_autorization, id_client, loginn, pass)
---12	zayavka (id_zayavka, id_client, id_state_zayavka)
---13	filial (id_filial, id_adres_filial, nam)
---14	schet (id_schet, id_client, id_type_schet, id_valut, id_state_schet, id_filial, summ)
---15	operations_schet (id_operation, id_schet, id_type_operation, summ)
-
--- Заполнение таблицы "hhash"
---INSERT INTO "hhash" ("id_autorization", "hashh") VALUES
---(1, 'хэш1'), (2, 'хэш2'), (3, 'хэш3'), (4, 'хэш4'), (5, 'хэш5'),
---(6, 'хэш6'), (7, 'хэш7'), (8, 'хэш8'), (9, 'хэш9'), (10, 'хэш10');
-
--- Заполнение таблицы "keys"
---INSERT INTO "keys" ("id_autorizations", "keyy") VALUES
---(1, 'ключ1'), (2, 'ключ2'), (3, 'ключ3'), (4, 'ключ4'), (5, 'ключ5'),
---(6, 'ключ6'), (7, 'ключ7'), (8, 'ключ8'), (9, 'ключ9'), (10, 'ключ10');
-
 -- Заполнение таблицы "adres_filial"
 INSERT INTO "adres_filial" ("id_adres_filial", "country", "city", "street", "house", "post_index") VALUES
 (1, 'Россия', 'Москва', 'Ленина', 1, 123456),
@@ -163,18 +124,15 @@ INSERT INTO "adres_filial" ("id_adres_filial", "country", "city", "street", "hou
 
 -- Заполнение таблицы "type_operation"
 INSERT INTO "type_operation" ("id_type_operation", "nam") VALUES
-(1, 'Депозит'), (2, 'Снятие'), (3, 'Перевод'), (4, 'Платеж'), (5, 'Обмен'),
-(6, 'Кэшбэк'), (7, 'Выплата процентов'), (8, 'Комиссия'), (9, 'Штраф'), (10, 'Возврат');
+(0, 'Снятие'), (1, 'Пополнение');
 
 -- Заполнение таблицы "type_schet"
 INSERT INTO "type_schet" ("id_type_schet", "nam") VALUES
-(1, 'Текущий'), (2, 'Сберегательный'), (3, 'Срочный вклад'), (4, 'Повторяющийся вклад'), (5, 'Ностро счет'),
-(6, 'Востро счет'), (7, 'Текущий счет'), (8, 'Зарплатный'), (9, 'Эскроу'), (10, 'Совместный счет');
+(1, 'быстрый'), (2, 'долгосрочный');
 
 -- Заполнение таблицы "state_schet"
 INSERT INTO "state_schet" ("id_state_schet", "sost") VALUES
-(1, 'Активный'), (2, 'Неактивный'), (3, 'Закрыт'), (4, 'Приостановлен'), (5, 'Спящий'),
-(6, 'Заморожен'), (7, 'Заблокирован'), (8, 'В ожидании'), (9, 'Одобрен'), (10, 'Отклонен');
+(0, 'Закрыт'), (1, 'Открыт');
 
 -- Заполнение таблицы "valut"
 INSERT INTO "valut" ("id_valut", "nam") VALUES
@@ -212,14 +170,6 @@ INSERT INTO "client" ("id_client", "id_adres_client", "fam", "nam", "otch", "pas
 (9, 9, 'Ковалев', 'Юрий', 'Юрьевич', '9012345678', 8909012345),
 (10, 10, 'Орлов', 'Михаил', 'Михайлович', '1012345678', 8901012345);
 
--- Заполнение таблицы "autorization"
-INSERT INTO "autorization" ("id_autorization", "id_client", "loginn", "pass") VALUES
-(1, 1, 'ivanov_login', 'ivanov_pass'), (2, 2, 'petrov_login', 'petrov_pass'),
-(3, 3, 'sidorov_login', 'sidorov_pass'), (4, 4, 'smirnov_login', 'smirnov_pass'),
-(5, 5, 'kuznetsov_login', 'kuznetsov_pass'), (6, 6, 'popov_login', 'popov_pass'),
-(7, 7, 'vasiliev_login', 'vasiliev_pass'), (8, 8, 'zaitsev_login', 'zaitsev_pass'),
-(9, 9, 'kovalev_login', 'kovalev_pass'), (10, 10, 'orlov_login', 'orlov_pass');
-
 -- Заполнение таблицы "zayavka"
 INSERT INTO "zayavka" ("id_zayavka", "id_client", "id_state_zayavka") VALUES
 (1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5),
@@ -234,15 +184,15 @@ INSERT INTO "filial" ("id_filial", "id_adres_filial", "nam") VALUES
 
 -- Заполнение таблицы "schet"
 INSERT INTO "schet" ("id_schet", "id_client", "id_type_schet", "id_valut", "id_state_schet", "id_filial", "summ") VALUES
-(1, 1, 1, 1, 1, 1, 10000), (2, 2, 2, 2, 2, 2, 20000), (3, 3, 3, 3, 3, 3, 30000),
-(4, 4, 4, 4, 4, 4, 40000), (5, 5, 5, 5, 5, 5, 50000), (6, 6, 6, 6, 6, 6, 60000),
-(7, 7, 7, 7, 7, 7, 70000), (8, 8, 8, 8, 8, 8, 80000), (9, 9, 9, 9, 9, 9, 90000),
-(10, 10, 10, 10, 10, 10, 100000);
+(1, 1, 1, 1, 1, 1, 10000), (2, 2, 2, 2, 1, 2, 20000), (3, 3, 1, 3, 1, 3, 30000),
+(4, 4, 1, 4, 1, 4, 40000), (5, 5, 2, 5, 1, 5, 50000), (6, 6, 1, 6, 1, 6, 60000),
+(7, 7, 1, 7, 1, 7, 70000), (8, 8, 2, 8, 1, 8, 80000), (9, 9, 1, 9, 1, 9, 90000),
+(10, 10, 1, 10, 1, 10, 100000);
 
 -- Заполнение таблицы "operations_schet"
 INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation", "summ") VALUES
-(1, 1, 1, 1000), (2, 2, 2, 2000), (3, 3, 3, 3000), (4, 4, 4, 4000), (5, 5, 5, 5000),
-(6, 6, 6, 6000), (7, 7, 7, 7000), (8, 8, 8, 8000), (9, 9, 9, 9000), (10, 10, 10, 10000);
+(1, 1, 0, 1000), (2, 2, 0, 2000), (3, 3, 0, 3000), (4, 4, 0, 4000), (5, 5, 0, 5000),
+(6, 6, 1, 6000), (7, 7, 1, 7000), (8, 8, 1, 8000), (9, 9, 1, 9000), (10, 10, 1, 10000);
 
 
 create role cliet;
@@ -258,6 +208,141 @@ CREATE USER u3 WITH LOGIN PASSWORD 'p3';
 GRANT menedjer TO u3;
 
 
---SELECT table_schema, table_name, privilege_type
---FROM information_schema.table_privileges
---WHERE grantee = 'u1';
+--Триггер для автоматического обновления суммы счёта при внесении операций
+CREATE OR REPLACE FUNCTION test1()
+RETURNS TRIGGER AS $$
+DECLARE
+    var_summ DECIMAL;
+BEGIN
+	SELECT summ INTO var_summ
+	FROM schet
+	WHERE id_schet = NEW.id_schet;
+	
+	IF NEW.id_type_operation = 0 THEN
+		var_summ := var_summ - NEW.summ
+	ELSE
+		var_summ := var_summ + NEW.summ
+	END IF;
+	
+	UPDATE schet
+	SET summ = var_summ
+	where id_schet = NEW.id_schet;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest1
+AFTER INSERT ON operations_schet
+FOR EACH ROW
+EXECUTE FUNCTION test1();
+
+--Триггер для предотвращения удаления клиента с активными счетами
+CREATE OR REPLACE FUNCTION test2()
+RETURNS TRIGGER AS $$
+DECLARE
+	active_count INTEGER;
+BEGIN
+	SELECT COUNT(*) INTO active_count
+	FROM schet
+	WHERE id_client = OLD.id_client AND id_state_schet = 1;
+	
+	IF active_count > 0 THEN
+        RAISE EXCEPTION 'Cannot delete client with active accounts';
+    END IF;
+	RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest2
+BEFORE DELETE ON client
+FOR EACH ROW
+EXECUTE FUNCTION test2();
+
+--Триггер для шифрования паспорта с использованием сгенерированного ключа, и записью этого ключа в таблицу keys
+CREATE OR REPLACE FUNCTION test3()
+RETURNS TRIGGER AS $$
+BEGIN
+	
+END;
+$$ LANGUAGE plpgsql;
+
+--Триггер для предотвращения отрицательного баланса на счете
+CREATE OR REPLACE FUNCTION test4()
+RETURNS TRIGGER AS $$
+BEGIN
+	
+END;
+$$ LANGUAGE plpgsql;
+
+--Триггер для проверки существования клиента при добавлении нового счета
+CREATE OR REPLACE FUNCTION test5()
+RETURNS TRIGGER AS $$
+DECLARE
+    client_exists BOOLEAN;
+BEGIN
+	SELECT EXISTS(SELECT 1 FROM client WHERE id_client = NEW.id_client) INTO client_exists;
+
+    IF NOT client_exists THEN
+        RAISE EXCEPTION 'Client with id % does not exist.', NEW.id_client;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest5
+BEFORE INSERT ON schet
+FOR EACH ROW
+EXECUTE FUNCTION test5();
+
+--Триггер для предотвращения вставки операции на закрытом счете
+CREATE OR REPLACE FUNCTION test6()
+RETURNS TRIGGER AS $$
+DECLARE
+    account_state INT;
+BEGIN
+	SELECT id_state_schet INTO account_state
+    FROM schet
+    WHERE id_schet = NEW.id_schet;
+	
+	IF account_state = 0 THEN
+        RAISE EXCEPTION 'Operation cannot be performed on a closed account with id %.', NEW.id_schet;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest6
+BEFORE INSERT ON operations_schet
+FOR EACH ROW
+EXECUTE FUNCTION test6();
+
+--Триггер для ограничения количества счетов у одного клиента
+CREATE OR REPLACE FUNCTION test7()
+RETURNS TRIGGER AS $$
+DECLARE
+    account_count INT;
+    max_accounts INT := 3;
+BEGIN
+	SELECT COUNT(*) INTO account_count
+    FROM schet
+    WHERE id_client = NEW.id_client;
+	
+	IF account_count >= max_accounts THEN
+        RAISE EXCEPTION 'Client with id % already has the maximum number of accounts (%).', NEW.id_client, max_accounts;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest7
+BEFORE INSERT ON schet
+FOR EACH ROW
+EXECUTE FUNCTION test7();
+
+
+delete from schet
+where id_schet = 12;
