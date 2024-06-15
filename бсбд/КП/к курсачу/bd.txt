@@ -1,3 +1,6 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--создание таблиц
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE "keys" (
   "id_client" bigint,
   "keyy" text
@@ -84,9 +87,10 @@ CREATE TABLE "operations_schet" (
   "id_type_operation" bigint,
   "summ" bigint
 );
-
-ALTER TABLE "keys" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--создание связей
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ALTER TABLE "client" ADD FOREIGN KEY ("id_adres_client") REFERENCES "adres_client" ("id_adres_client");
 
 ALTER TABLE "zayavka" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
@@ -108,7 +112,246 @@ ALTER TABLE "schet" ADD FOREIGN KEY ("id_filial") REFERENCES "filial" ("id_filia
 ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_schet") REFERENCES "schet" ("id_schet");
 
 ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES "type_operation" ("id_type_operation");
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--создание триггеров
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Триггер для автоматического обновления суммы счёта при внесении операций
+CREATE OR REPLACE FUNCTION test1()
+RETURNS TRIGGER AS $$
+DECLARE
+    var_summ DECIMAL;
+BEGIN
+    SELECT summ INTO var_summ
+    FROM schet
+    WHERE id_schet = NEW.id_schet;
+    
+    IF NEW.id_type_operation = 0 THEN
+        var_summ := var_summ - NEW.summ;
+    ELSE
+        var_summ := var_summ + NEW.summ;
+    END IF;
+    
+    UPDATE schet
+    SET summ = var_summ
+    WHERE id_schet = NEW.id_schet;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER trigtest1
+AFTER INSERT ON operations_schet
+FOR EACH ROW
+EXECUTE FUNCTION test1();
+
+--Триггер для предотвращения удаления клиента с активными счетами
+CREATE OR REPLACE FUNCTION test2()
+RETURNS TRIGGER AS $$
+DECLARE
+	active_count INTEGER;
+BEGIN
+	SELECT COUNT(*) INTO active_count
+	FROM schet
+	WHERE id_client = OLD.id_client AND id_state_schet = 1;
+	
+	IF active_count > 0 THEN
+        RAISE EXCEPTION 'Cannot delete client with active accounts';
+    END IF;
+	RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest2
+BEFORE DELETE ON client
+FOR EACH ROW
+EXECUTE FUNCTION test2();
+
+--Триггер для шифрования паспорта с генерацией ключа, и записью этого ключа в таблицу keys
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION test3()
+RETURNS TRIGGER AS $$
+DECLARE
+    key text;
+BEGIN
+    key := gen_random_uuid()::text;
+    NEW.passport := pgp_sym_encrypt(NEW.passport, key);
+    INSERT INTO keys (id_client, keyy) VALUES (NEW.id_client, key);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest3
+BEFORE INSERT OR UPDATE ON client
+FOR EACH ROW
+EXECUTE FUNCTION test3();
+
+--Функция для расшифрования шифрования паспорта
+CREATE OR REPLACE FUNCTION decrypt_passport(client_id int)
+RETURNS text AS $$
+DECLARE
+    encrypted_passport text;
+    decryption_key text;
+    decrypted_passport text;
+BEGIN
+    SELECT c.passport INTO encrypted_passport FROM client c WHERE c.id_client = client_id;
+    SELECT k.keyy INTO decryption_key FROM keys k WHERE k.id_client = client_id;
+    decrypted_passport := pgp_sym_decrypt(encrypted_passport::bytea, decryption_key);
+    RETURN decrypted_passport;
+END;
+$$ LANGUAGE plpgsql;
+
+--SELECT decrypt_passport(1);
+
+--Триггер для предотвращения отрицательного баланса на счете
+CREATE OR REPLACE FUNCTION test4()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_balance DECIMAL;
+BEGIN
+    SELECT summ INTO current_balance
+    FROM schet
+    WHERE id_schet = NEW.id_schet;
+	
+    IF NEW.id_type_operation = 0 AND (current_balance - NEW.summ) < 0 THEN
+        RAISE EXCEPTION 'Операция не может быть выполнена: отрицательный баланс на счете.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest4
+BEFORE INSERT ON operations_schet
+FOR EACH ROW
+EXECUTE FUNCTION test4();
+
+--Триггер для проверки существования клиента при добавлении нового счета
+CREATE OR REPLACE FUNCTION test5()
+RETURNS TRIGGER AS $$
+DECLARE
+    client_exists BOOLEAN;
+BEGIN
+	SELECT EXISTS(SELECT 1 FROM client WHERE id_client = NEW.id_client) INTO client_exists;
+
+    IF NOT client_exists THEN
+        RAISE EXCEPTION 'Client with id % does not exist.', NEW.id_client;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest5
+BEFORE INSERT ON schet
+FOR EACH ROW
+EXECUTE FUNCTION test5();
+
+--Триггер для предотвращения вставки операции на закрытом счете
+CREATE OR REPLACE FUNCTION test6()
+RETURNS TRIGGER AS $$
+DECLARE
+    account_state INT;
+BEGIN
+	SELECT id_state_schet INTO account_state
+    FROM schet
+    WHERE id_schet = NEW.id_schet;
+	
+	IF account_state = 0 THEN
+        RAISE EXCEPTION 'Operation cannot be performed on a closed account with id %.', NEW.id_schet;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest6
+BEFORE INSERT ON operations_schet
+FOR EACH ROW
+EXECUTE FUNCTION test6();
+
+--Триггер для ограничения количества счетов у одного клиента
+CREATE OR REPLACE FUNCTION test7()
+RETURNS TRIGGER AS $$
+DECLARE
+    account_count INT;
+    max_accounts INT := 3;
+BEGIN
+	SELECT COUNT(*) INTO account_count
+    FROM schet
+    WHERE id_client = NEW.id_client;
+	
+	IF account_count >= max_accounts THEN
+        RAISE EXCEPTION 'Client with id % already has the maximum number of accounts (%).', NEW.id_client, max_accounts;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest7
+BEFORE INSERT ON schet
+FOR EACH ROW
+EXECUTE FUNCTION test7();
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--создание запросов
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Получить список всех зарегистрированных в системе клиентов, имеющих задолженность по кредиту
+SELECT c.*
+FROM client c
+JOIN schet s ON c.id_client = s.id_client
+WHERE s.summ != 0;
+--Проверить статус заявки на кредит для определённого клиента
+SELECT z.*, sz.sost AS status_zayavki
+FROM zayavka z
+JOIN state_zayavka sz ON z.id_state_zayavka = sz.id_state_zayavka
+WHERE z.id_client = 1;
+--Посмотреть все заявки на кредит ожидающие одобрения
+SELECT z.*
+FROM zayavka z
+WHERE z.id_state_zayavka = 7;
+--Проверить историю выдачи кредитов для конкретного клиента (переделать чтобы можно было для любого клиента а не только для 1)
+SELECT s.*
+FROM schet s
+WHERE s.id_client = 1;
+--Получить список всех открытых кредитов
+SELECT s.*
+FROM schet s
+WHERE s.id_state_schet = 1;
+--Посмотреть список отказанных заявок на кредит
+SELECT z.*
+FROM zayavka z
+WHERE (z.id_state_zayavka = 6 OR z.id_state_zayavka = 9)
+--Получить общую сумму всех открытых кредитов
+SELECT SUM(s.summ) AS total_open_credit_sum
+FROM schet s
+WHERE s.id_state_schet = 1;
+--Проверить текущий баланс по кредитным счетам клиента
+SELECT s.id_schet, s.summ
+FROM schet s
+WHERE s.id_client = 1;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--создание ролей
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+create role cliet;
+create role administrator;
+create role menedjer;
+
+
+CREATE USER ivanov_login WITH LOGIN PASSWORD 'p1';
+GRANT cliet TO ivanov_login;
+CREATE USER u2 WITH LOGIN PASSWORD 'p2';
+GRANT administrator TO u2;
+CREATE USER u3 WITH LOGIN PASSWORD 'p3';
+GRANT menedjer TO u3;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--заполнение таблиц
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Заполнение таблицы "adres_filial"
 INSERT INTO "adres_filial" ("id_adres_filial", "country", "city", "street", "house", "post_index") VALUES
 (1, 'Россия', 'Москва', 'Ленина', 1, 123456),
@@ -193,156 +436,4 @@ INSERT INTO "schet" ("id_schet", "id_client", "id_type_schet", "id_valut", "id_s
 INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation", "summ") VALUES
 (1, 1, 0, 1000), (2, 2, 0, 2000), (3, 3, 0, 3000), (4, 4, 0, 4000), (5, 5, 0, 5000),
 (6, 6, 1, 6000), (7, 7, 1, 7000), (8, 8, 1, 8000), (9, 9, 1, 9000), (10, 10, 1, 10000);
-
-
-create role cliet;
-create role administrator;
-create role menedjer;
-
-
-CREATE USER ivanov_login WITH LOGIN PASSWORD 'p1';
-GRANT cliet TO ivanov_login;
-CREATE USER u2 WITH LOGIN PASSWORD 'p2';
-GRANT administrator TO u2;
-CREATE USER u3 WITH LOGIN PASSWORD 'p3';
-GRANT menedjer TO u3;
-
-
---Триггер для автоматического обновления суммы счёта при внесении операций
-CREATE OR REPLACE FUNCTION test1()
-RETURNS TRIGGER AS $$
-DECLARE
-    var_summ DECIMAL;
-BEGIN
-	SELECT summ INTO var_summ
-	FROM schet
-	WHERE id_schet = NEW.id_schet;
-	
-	IF NEW.id_type_operation = 0 THEN
-		var_summ := var_summ - NEW.summ
-	ELSE
-		var_summ := var_summ + NEW.summ
-	END IF;
-	
-	UPDATE schet
-	SET summ = var_summ
-	where id_schet = NEW.id_schet;
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigtest1
-AFTER INSERT ON operations_schet
-FOR EACH ROW
-EXECUTE FUNCTION test1();
-
---Триггер для предотвращения удаления клиента с активными счетами
-CREATE OR REPLACE FUNCTION test2()
-RETURNS TRIGGER AS $$
-DECLARE
-	active_count INTEGER;
-BEGIN
-	SELECT COUNT(*) INTO active_count
-	FROM schet
-	WHERE id_client = OLD.id_client AND id_state_schet = 1;
-	
-	IF active_count > 0 THEN
-        RAISE EXCEPTION 'Cannot delete client with active accounts';
-    END IF;
-	RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigtest2
-BEFORE DELETE ON client
-FOR EACH ROW
-EXECUTE FUNCTION test2();
-
---Триггер для шифрования паспорта с использованием сгенерированного ключа, и записью этого ключа в таблицу keys
-CREATE OR REPLACE FUNCTION test3()
-RETURNS TRIGGER AS $$
-BEGIN
-	
-END;
-$$ LANGUAGE plpgsql;
-
---Триггер для предотвращения отрицательного баланса на счете
-CREATE OR REPLACE FUNCTION test4()
-RETURNS TRIGGER AS $$
-BEGIN
-	
-END;
-$$ LANGUAGE plpgsql;
-
---Триггер для проверки существования клиента при добавлении нового счета
-CREATE OR REPLACE FUNCTION test5()
-RETURNS TRIGGER AS $$
-DECLARE
-    client_exists BOOLEAN;
-BEGIN
-	SELECT EXISTS(SELECT 1 FROM client WHERE id_client = NEW.id_client) INTO client_exists;
-
-    IF NOT client_exists THEN
-        RAISE EXCEPTION 'Client with id % does not exist.', NEW.id_client;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigtest5
-BEFORE INSERT ON schet
-FOR EACH ROW
-EXECUTE FUNCTION test5();
-
---Триггер для предотвращения вставки операции на закрытом счете
-CREATE OR REPLACE FUNCTION test6()
-RETURNS TRIGGER AS $$
-DECLARE
-    account_state INT;
-BEGIN
-	SELECT id_state_schet INTO account_state
-    FROM schet
-    WHERE id_schet = NEW.id_schet;
-	
-	IF account_state = 0 THEN
-        RAISE EXCEPTION 'Operation cannot be performed on a closed account with id %.', NEW.id_schet;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigtest6
-BEFORE INSERT ON operations_schet
-FOR EACH ROW
-EXECUTE FUNCTION test6();
-
---Триггер для ограничения количества счетов у одного клиента
-CREATE OR REPLACE FUNCTION test7()
-RETURNS TRIGGER AS $$
-DECLARE
-    account_count INT;
-    max_accounts INT := 3;
-BEGIN
-	SELECT COUNT(*) INTO account_count
-    FROM schet
-    WHERE id_client = NEW.id_client;
-	
-	IF account_count >= max_accounts THEN
-        RAISE EXCEPTION 'Client with id % already has the maximum number of accounts (%).', NEW.id_client, max_accounts;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigtest7
-BEFORE INSERT ON schet
-FOR EACH ROW
-EXECUTE FUNCTION test7();
-
-
-delete from schet
-where id_schet = 12;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
