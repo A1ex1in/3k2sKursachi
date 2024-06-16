@@ -117,7 +117,7 @@ ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES 
 --триггеры
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Триггер для автоматического обновления суммы счёта при внесении операций
-CREATE OR REPLACE FUNCTION test1()
+CREATE OR REPLACE FUNCTION auto_update_summ_schet()
 RETURNS TRIGGER AS $$
 DECLARE
     var_summ DECIMAL;
@@ -140,13 +140,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest1
+CREATE TRIGGER trigger_auto_update_summ_schet
 AFTER INSERT ON operations_schet
 FOR EACH ROW
-EXECUTE FUNCTION test1();
+EXECUTE FUNCTION auto_update_summ_schet();
 
 --Триггер для предотвращения удаления клиента с активными счетами
-CREATE OR REPLACE FUNCTION test2()
+CREATE OR REPLACE FUNCTION delite_client_state_schet_0()
 RETURNS TRIGGER AS $$
 DECLARE
 	active_count INTEGER;
@@ -156,21 +156,21 @@ BEGIN
 	WHERE id_client = OLD.id_client AND id_state_schet = 1;
 	
 	IF active_count > 0 THEN
-        RAISE EXCEPTION 'Cannot delete client with active accounts';
+        RAISE EXCEPTION 'У клиента ещё есть открытые счета.';
     END IF;
 	RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest2
+CREATE TRIGGER trigger_delite_client_state_schet_0
 BEFORE DELETE ON client
 FOR EACH ROW
-EXECUTE FUNCTION test2();
+EXECUTE FUNCTION delite_client_state_schet_0();
 
 --Триггер для шифрования паспорта с генерацией ключа, и записью этого ключа в таблицу keys
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE OR REPLACE FUNCTION test3()
+CREATE OR REPLACE FUNCTION crypt_pasport_with_generate_key()
 RETURNS TRIGGER AS $$
 DECLARE
     key text;
@@ -183,10 +183,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest3
+CREATE TRIGGER trigger_crypt_pasport_with_generate_key
 BEFORE INSERT OR UPDATE ON client
 FOR EACH ROW
-EXECUTE FUNCTION test3();
+EXECUTE FUNCTION crypt_pasport_with_generate_key();
 
 --Функция для расшифрования шифрования паспорта
 CREATE OR REPLACE FUNCTION decrypt_passport(client_id int)
@@ -206,7 +206,7 @@ $$ LANGUAGE plpgsql;
 --SELECT decrypt_passport(1);
 
 --Триггер для предотвращения отрицательного баланса на счете
-CREATE OR REPLACE FUNCTION test4()
+CREATE OR REPLACE FUNCTION no_minus_schet()
 RETURNS TRIGGER AS $$
 DECLARE
     current_balance DECIMAL;
@@ -223,13 +223,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest4
+CREATE TRIGGER trigger_no_minus_schet
 BEFORE INSERT ON operations_schet
 FOR EACH ROW
-EXECUTE FUNCTION test4();
+EXECUTE FUNCTION no_minus_schet();
 
 --Триггер для проверки существования клиента при добавлении нового счета
-CREATE OR REPLACE FUNCTION test5()
+CREATE OR REPLACE FUNCTION have_schet_client()
 RETURNS TRIGGER AS $$
 DECLARE
     client_exists BOOLEAN;
@@ -237,20 +237,20 @@ BEGIN
 	SELECT EXISTS(SELECT 1 FROM client WHERE id_client = NEW.id_client) INTO client_exists;
 
     IF NOT client_exists THEN
-        RAISE EXCEPTION 'Client with id % does not exist.', NEW.id_client;
+        RAISE EXCEPTION 'Нет клиента с ID %.', NEW.id_client;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest5
+CREATE TRIGGER trigger_have_schet_client
 BEFORE INSERT ON schet
 FOR EACH ROW
-EXECUTE FUNCTION test5();
+EXECUTE FUNCTION have_schet_client();
 
 --Триггер для предотвращения вставки операции на закрытом счете
-CREATE OR REPLACE FUNCTION test6()
+CREATE OR REPLACE FUNCTION state_schet_close_dont_use()
 RETURNS TRIGGER AS $$
 DECLARE
     account_state INT;
@@ -260,20 +260,20 @@ BEGIN
     WHERE id_schet = NEW.id_schet;
 	
 	IF account_state = 0 THEN
-        RAISE EXCEPTION 'Operation cannot be performed on a closed account with id %.', NEW.id_schet;
+        RAISE EXCEPTION 'Счёт % закрыт.', NEW.id_schet;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest6
+CREATE TRIGGER trigger_state_schet_close_dont_use
 BEFORE INSERT ON operations_schet
 FOR EACH ROW
-EXECUTE FUNCTION test6();
+EXECUTE FUNCTION state_schet_close_dont_use();
 
 --Триггер для ограничения количества счетов у одного клиента
-CREATE OR REPLACE FUNCTION test7()
+CREATE OR REPLACE FUNCTION no_more_schet()
 RETURNS TRIGGER AS $$
 DECLARE
     account_count INT;
@@ -284,55 +284,17 @@ BEGIN
     WHERE id_client = NEW.id_client;
 	
 	IF account_count >= max_accounts THEN
-        RAISE EXCEPTION 'Client with id % already has the maximum number of accounts (%).', NEW.id_client, max_accounts;
+        RAISE EXCEPTION 'У клиента % уже максимум счетов (%).', NEW.id_client, max_accounts;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigtest7
+CREATE TRIGGER trigger_no_more_schet
 BEFORE INSERT ON schet
 FOR EACH ROW
-EXECUTE FUNCTION test7();
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
---запросы
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
---Получить список всех зарегистрированных в системе клиентов, имеющих задолженность по кредиту
-SELECT c.*
-FROM client c
-JOIN schet s ON c.id_client = s.id_client
-WHERE s.summ != 0;
---Проверить статус заявки на кредит для определённого клиента
-SELECT z.*, sz.sost AS status_zayavki
-FROM zayavka z
-JOIN state_zayavka sz ON z.id_state_zayavka = sz.id_state_zayavka
-WHERE z.id_client = 1;
---Посмотреть все заявки на кредит ожидающие одобрения
-SELECT z.*
-FROM zayavka z
-WHERE z.id_state_zayavka = 7;
---Проверить историю выдачи кредитов для конкретного клиента (переделать чтобы можно было для любого клиента а не только для 1)
-SELECT s.*
-FROM schet s
-WHERE s.id_client = 1;
---Получить список всех открытых кредитов
-SELECT s.*
-FROM schet s
-WHERE s.id_state_schet = 1;
---Посмотреть список отказанных заявок на кредит
-SELECT z.*
-FROM zayavka z
-WHERE (z.id_state_zayavka = 6 OR z.id_state_zayavka = 9)
---Получить общую сумму всех открытых кредитов
-SELECT SUM(s.summ) AS total_open_credit_sum
-FROM schet s
-WHERE s.id_state_schet = 1;
---Проверить текущий баланс по кредитным счетам клиента
-SELECT s.id_schet, s.summ
-FROM schet s
-WHERE s.id_client = 1;
+EXECUTE FUNCTION no_more_schet();
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --роли
@@ -436,4 +398,42 @@ INSERT INTO "schet" ("id_schet", "id_client", "id_type_schet", "id_valut", "id_s
 INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation", "summ") VALUES
 (1, 1, 0, 1000), (2, 2, 0, 2000), (3, 3, 0, 3000), (4, 4, 0, 4000), (5, 5, 0, 5000),
 (6, 6, 1, 6000), (7, 7, 1, 7000), (8, 8, 1, 8000), (9, 9, 1, 9000), (10, 10, 1, 10000);
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--запросы
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Получить список всех зарегистрированных в системе клиентов, имеющих задолженность по кредиту
+SELECT c.*
+FROM client c
+JOIN schet s ON c.id_client = s.id_client
+WHERE s.summ != 0;
+--Проверить статус заявки на кредит для определённого клиента
+SELECT z.*, sz.sost AS status_zayavki
+FROM zayavka z
+JOIN state_zayavka sz ON z.id_state_zayavka = sz.id_state_zayavka
+WHERE z.id_client = 1;
+--Посмотреть все заявки на кредит ожидающие одобрения
+SELECT z.*
+FROM zayavka z
+WHERE z.id_state_zayavka = 7;
+--Проверить историю выдачи кредитов для конкретного клиента (переделать чтобы можно было для любого клиента а не только для 1)
+SELECT s.*
+FROM schet s
+WHERE s.id_client = 1;
+--Получить список всех открытых кредитов
+SELECT s.*
+FROM schet s
+WHERE s.id_state_schet = 1;
+--Посмотреть список отказанных заявок на кредит
+SELECT z.*
+FROM zayavka z
+WHERE (z.id_state_zayavka = 6 OR z.id_state_zayavka = 9)
+--Получить общую сумму всех открытых кредитов
+SELECT SUM(s.summ) AS total_open_credit_sum
+FROM schet s
+WHERE s.id_state_schet = 1;
+--Проверить текущий баланс по кредитным счетам клиента
+SELECT s.id_schet, s.summ
+FROM schet s
+WHERE s.id_client = 1;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
