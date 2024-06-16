@@ -299,17 +299,22 @@ EXECUTE FUNCTION no_more_schet();
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --роли
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
+
 create role cliet;
 create role administrator;
 create role menedjer;
 
-
-CREATE USER ivanov_login WITH LOGIN PASSWORD 'p1';
-GRANT cliet TO ivanov_login;
+CREATE USER u1 WITH LOGIN PASSWORD 'p1';
+GRANT cliet TO u1;
 CREATE USER u2 WITH LOGIN PASSWORD 'p2';
 GRANT administrator TO u2;
 CREATE USER u3 WITH LOGIN PASSWORD 'p3';
 GRANT menedjer TO u3;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO administrator;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO menedjer;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO cliet;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --заполнение таблиц
