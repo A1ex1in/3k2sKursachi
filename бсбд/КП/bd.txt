@@ -408,37 +408,19 @@ INSERT INTO "operations_schet" ("id_operation", "id_schet", "id_type_operation",
 --запросы
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Получить список всех зарегистрированных в системе клиентов, имеющих задолженность по кредиту
-SELECT c.*
-FROM client c
-JOIN schet s ON c.id_client = s.id_client
-WHERE s.summ != 0;
+SELECT c.* FROM client c JOIN schet s ON c.id_client = s.id_client WHERE s.summ != 0;
 --Проверить статус заявки на кредит для определённого клиента
-SELECT z.*, sz.sost AS status_zayavki
-FROM zayavka z
-JOIN state_zayavka sz ON z.id_state_zayavka = sz.id_state_zayavka
-WHERE z.id_client = 1;
+SELECT z.*, sz.sost AS status_zayavki FROM zayavka z JOIN state_zayavka sz ON z.id_state_zayavka = sz.id_state_zayavka WHERE z.id_client = 1;
 --Посмотреть все заявки на кредит ожидающие одобрения
-SELECT z.*
-FROM zayavka z
-WHERE z.id_state_zayavka = 7;
+SELECT z.* FROM zayavka z WHERE z.id_state_zayavka = 7;
 --Проверить историю выдачи кредитов для конкретного клиента (переделать чтобы можно было для любого клиента а не только для 1)
-SELECT s.*
-FROM schet s
-WHERE s.id_client = 1;
+SELECT s.* FROM schet s WHERE s.id_client = 1;
 --Получить список всех открытых кредитов
-SELECT s.*
-FROM schet s
-WHERE s.id_state_schet = 1;
+SELECT s.* FROM schet s WHERE s.id_state_schet = 1;
 --Посмотреть список отказанных заявок на кредит
-SELECT z.*
-FROM zayavka z
-WHERE (z.id_state_zayavka = 6 OR z.id_state_zayavka = 9)
+SELECT z.* FROM zayavka z WHERE (z.id_state_zayavka = 6 OR z.id_state_zayavka = 9);
 --Получить общую сумму всех открытых кредитов
-SELECT SUM(s.summ) AS total_open_credit_sum
-FROM schet s
-WHERE s.id_state_schet = 1;
+SELECT SUM(s.summ) AS total_open_credit_sum FROM schet s WHERE s.id_state_schet = 1;
 --Проверить текущий баланс по кредитным счетам клиента
-SELECT s.id_schet, s.summ
-FROM schet s
-WHERE s.id_client = 1;
+SELECT s.id_schet, s.summ FROM schet s WHERE s.id_client = 1;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
