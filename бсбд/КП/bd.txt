@@ -91,27 +91,27 @@ CREATE TABLE "operations_schet" (
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --связи
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ALTER TABLE "client" ADD FOREIGN KEY ("id_adres_client") REFERENCES "adres_client" ("id_adres_client");
+ALTER TABLE "client" ADD CONSTRAINT fk_id_adres_client FOREIGN KEY ("id_adres_client") REFERENCES "adres_client" ("id_adres_client") ON DELETE CASCADE;
 
-ALTER TABLE "zayavka" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
+ALTER TABLE "zayavka" ADD CONSTRAINT fk_id_client FOREIGN KEY ("id_client") REFERENCES "client" ("id_client") ON DELETE CASCADE;
 
-ALTER TABLE "zayavka" ADD FOREIGN KEY ("id_state_zayavka") REFERENCES "state_zayavka" ("id_state_zayavka");
+ALTER TABLE "zayavka" ADD CONSTRAINT fk_id_state_zayavka FOREIGN KEY ("id_state_zayavka") REFERENCES "state_zayavka" ("id_state_zayavka") ON DELETE CASCADE;
 
-ALTER TABLE "filial" ADD FOREIGN KEY ("id_adres_filial") REFERENCES "adres_filial" ("id_adres_filial");
+ALTER TABLE "filial" ADD CONSTRAINT fk_id_adres_filial FOREIGN KEY ("id_adres_filial") REFERENCES "adres_filial" ("id_adres_filial") ON DELETE CASCADE;
 
-ALTER TABLE "schet" ADD FOREIGN KEY ("id_client") REFERENCES "client" ("id_client");
+ALTER TABLE "schet" ADD CONSTRAINT fk_id_client_schet FOREIGN KEY ("id_client") REFERENCES "client" ("id_client") ON DELETE CASCADE;
 
-ALTER TABLE "schet" ADD FOREIGN KEY ("id_type_schet") REFERENCES "type_schet" ("id_type_schet");
+ALTER TABLE "schet" ADD CONSTRAINT fk_id_type_schet FOREIGN KEY ("id_type_schet") REFERENCES "type_schet" ("id_type_schet") ON DELETE CASCADE;
 
-ALTER TABLE "schet" ADD FOREIGN KEY ("id_valut") REFERENCES "valut" ("id_valut");
+ALTER TABLE "schet" ADD CONSTRAINT fk_id_valut FOREIGN KEY ("id_valut") REFERENCES "valut" ("id_valut") ON DELETE CASCADE;
 
-ALTER TABLE "schet" ADD FOREIGN KEY ("id_state_schet") REFERENCES "state_schet" ("id_state_schet");
+ALTER TABLE "schet" ADD CONSTRAINT fk_id_state_schet FOREIGN KEY ("id_state_schet") REFERENCES "state_schet" ("id_state_schet") ON DELETE CASCADE;
 
-ALTER TABLE "schet" ADD FOREIGN KEY ("id_filial") REFERENCES "filial" ("id_filial");
+ALTER TABLE "schet" ADD CONSTRAINT fk_id_filial FOREIGN KEY ("id_filial") REFERENCES "filial" ("id_filial") ON DELETE CASCADE;
 
-ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_schet") REFERENCES "schet" ("id_schet");
+ALTER TABLE "operations_schet" ADD CONSTRAINT fk_id_schet FOREIGN KEY ("id_schet") REFERENCES "schet" ("id_schet") ON DELETE CASCADE;
 
-ALTER TABLE "operations_schet" ADD FOREIGN KEY ("id_type_operation") REFERENCES "type_operation" ("id_type_operation");
+ALTER TABLE "operations_schet" ADD CONSTRAINT fk_id_type_operation FOREIGN KEY ("id_type_operation") REFERENCES "type_operation" ("id_type_operation") ON DELETE CASCADE;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --триггеры (7)
@@ -303,16 +303,81 @@ create role cliet;
 create role administrator;
 create role menedjer;
 
-CREATE USER u1 WITH LOGIN PASSWORD 'p1';
-GRANT cliet TO u1;
-CREATE USER u2 WITH LOGIN PASSWORD 'p2';
-GRANT administrator TO u2;
-CREATE USER u3 WITH LOGIN PASSWORD 'p3';
-GRANT menedjer TO u3;
+CREATE USER Иванов WITH LOGIN PASSWORD 'Иванов';
+GRANT cliet TO Иванов;
 
+CREATE USER adm WITH LOGIN PASSWORD 'adm';
+GRANT administrator TO adm;
+
+CREATE USER mened WITH LOGIN PASSWORD 'mened';
+GRANT menedjer TO mened;
+
+-- Политика для таблицы client
+CREATE POLICY client_policy ON client
+    FOR SELECT
+    USING (current_user = fam 
+	OR (SELECT array_to_string(ARRAY(SELECT b.rolname 
+									 FROM pg_auth_members m 
+									 JOIN pg_roles b ON m.roleid = b.oid 
+									 WHERE m.member = r.oid), ', ')
+		FROM pg_roles r 
+		WHERE r.rolname = CURRENT_USER) 
+	IN ('administrator', 'menedjer'));
+
+-- Политика для таблицы schet
+CREATE POLICY schet_policy ON schet
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1
+        FROM client
+        WHERE client.id_client = schet.id_client
+        AND (current_user = client.fam 
+		OR (SELECT array_to_string(ARRAY(SELECT b.rolname 
+									 FROM pg_auth_members m 
+									 JOIN pg_roles b ON m.roleid = b.oid 
+									 WHERE m.member = r.oid), ', ')
+		FROM pg_roles r 
+		WHERE r.rolname = CURRENT_USER) 
+	IN ('administrator', 'menedjer'))
+    ));
+
+-- Политика для таблицы operations_schet
+CREATE POLICY operations_schet_policy ON operations_schet
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1
+        FROM client, schet
+        WHERE client.id_client = schet.id_client
+        AND schet.id_schet = operations_schet.id_schet
+        AND (current_user = client.fam 
+		OR (SELECT array_to_string(ARRAY(SELECT b.rolname 
+									 FROM pg_auth_members m 
+									 JOIN pg_roles b ON m.roleid = b.oid 
+									 WHERE m.member = r.oid), ', ')
+		FROM pg_roles r 
+		WHERE r.rolname = CURRENT_USER) 
+	IN ('administrator', 'menedjer'))
+    ));
+
+-- Включаем и применяем RLS политики
+ALTER TABLE client ENABLE ROW LEVEL SECURITY;
+ALTER TABLE client FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE schet ENABLE ROW LEVEL SECURITY;
+ALTER TABLE schet FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE operations_schet ENABLE ROW LEVEL SECURITY;
+ALTER TABLE operations_schet FORCE ROW LEVEL SECURITY;
+
+-- Права для роли cliet
+GRANT SELECT ON client TO cliet;
+GRANT SELECT ON schet TO cliet;
+GRANT SELECT ON operations_schet TO cliet;
+
+-- Права для ролей administrator и manager
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO administrator;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO menedjer;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO cliet;
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --заполнение таблиц
