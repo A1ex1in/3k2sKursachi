@@ -377,6 +377,8 @@ GRANT SELECT ON operations_schet TO cliet;
 -- Права для ролей administrator и manager
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO administrator;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO menedjer;
+CREATE ROLE administrator WITH CREATEROLE LOGIN;
+ALTER ROLE administrator WITH CREATEROLE LOGIN;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
