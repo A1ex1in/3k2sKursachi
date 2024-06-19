@@ -352,6 +352,13 @@ CREATE POLICY operations_schet_policy ON operations_schet
 		WHERE client.id_client = schet.id_client
 		AND schet.id_schet = operations_schet.id_schet
 		AND current_user = client.fam
+		OR (SELECT array_to_string(ARRAY(SELECT b.rolname 
+									 FROM pg_auth_members m 
+									 JOIN pg_roles b ON m.roleid = b.oid 
+									 WHERE m.member = r.oid), ', ')
+		FROM pg_roles r 
+		WHERE r.rolname = CURRENT_USER) 
+	IN ('administrator', 'menedjer'))
 	));
 
 -- Включаем и применяем RLS политики
